@@ -1,0 +1,8 @@
+{
+  "name": "@yonbon/tsconfig",
+  "version": "0.0.0",
+  "files": [
+    "api.json",
+    "web.json"
+  ]
+}
