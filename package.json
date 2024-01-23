@@ -1,0 +1,28 @@
+{
+  "name": "yonbon",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "git:alias": "git config alias.cz 'npx cz'",
+    "fix": "prettier --write \"**/*.{ts,tsx,js,jsx,cjs,md}\" && turbo run lint:fix",
+    "lint": "turbo run lint",
+    "start": "node apps/api/dist/main"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^18.5.0",
+    "@commitlint/config-conventional": "^18.5.0",
+    "cz-conventional-changelog": "^3.3.0",
+    "prettier": "^3.2.4",
+    "turbo": "^1.11.3"
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "packageManager": "yarn@3.6.1"
+}
