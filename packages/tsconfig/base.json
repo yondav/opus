@@ -1,4 +1,6 @@
 {
-  "target": "ES2021",
-  "skipLibCheck": true
+  "compilerOptions": {
+    "target": "ES2021",
+    "skipLibCheck": true
+  }
 }
