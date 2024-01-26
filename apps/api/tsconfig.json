@@ -1,0 +1,4 @@
+{
+  "extends": "@yonbon/tsconfig/api.json",
+  "compilerOptions": { "outDir": "./dist" },
+}
