@@ -1,7 +1,5 @@
 # @yonbon/eslint
 
-This package provides ESLint configurations for TypeScript projects, specifically tailored for API and React applications.
-
 ## Configurations
 
 ### 1. API Configuration
