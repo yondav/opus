@@ -1,6 +1,10 @@
+// src/styles/colors.ts
+
+// Base colors
 const white = '#fcfcfd';
 const black = '#040208';
 
+// Neutral palette
 const neutral = {
   50: '#f9f9fb',
   100: '#eeeef0',
@@ -15,6 +19,7 @@ const neutral = {
   950: '#1d1d20',
 };
 
+// Primary palette
 const primary = {
   50: '#f4f3ff',
   100: '#eceafd',
@@ -29,6 +34,7 @@ const primary = {
   950: '#291362',
 };
 
+// Secondary palette
 const secondary = {
   50: '#f8f7f1',
   100: '#f1ede4',
@@ -43,6 +49,7 @@ const secondary = {
   950: '#2d1c31',
 };
 
+// Export the colors object as a constant
 export const colors = {
   white,
   black,

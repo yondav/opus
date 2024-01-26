@@ -1,10 +1,13 @@
 // src/styles/GlobalStyles.tsx
+
 import { createGlobalStyle } from 'styled-components';
 import tw, { theme, GlobalStyles as BaseStyles } from 'twin.macro';
 
 import { colors } from './colors';
 
+// Define custom global styles using styled-components
 const CustomStyles = createGlobalStyle({
+  // CSS variables
   ':root': {
     '--brand-header-ff': "'Dosis', sans-serif",
     '--brand-body-ff': "'League Spartan', sans-serif",
@@ -49,10 +52,12 @@ const CustomStyles = createGlobalStyle({
     '--brand-secondary-950': colors.secondary[950],
   },
 
+  // Global styles for focus-visible state
   '*': {
     ...tw`focus-visible:(outline-0 ring ring-primary-400 ring-offset-1 ring-offset-primary-200)`,
   },
 
+  // Global styles for HTML element
   html: {
     minHeight: '100%',
     backgroundSize: '100% 100%',
@@ -60,43 +65,42 @@ const CustomStyles = createGlobalStyle({
     backgroundImage: `linear-gradient(180deg, ${theme`colors.neutral.50`} 1%, #2344C200 29%), radial-gradient(113% 91% at 105% 0%, ${theme`colors.primary.400`} 0%, #2344C200 47%), radial-gradient(113% 91% at 17% -2%, ${theme`colors.secondary.300`} 0%, ${theme`colors.neutral.50`} 43%), radial-gradient(142% 91% at -6% 74%, ${theme`colors.neutral.50`} 1%, #FF000000 99%), radial-gradient(142% 91% at 111% 84%, ${theme`colors.white`} 0%, ${theme`colors.neutral.50`} 100%)`,
   },
 
+  // Global styles for body element
   body: {
-    // backgroundColor: theme`colors.neutral.50`,
-    ...tw`text-neutral-950 text-p-sm md:text-p-md lg:text-p-md font-body`,
+    ...tw`text-neutral-950 text-p-sm md:text-p-md lg:text-p-md font-body antialiased`,
     WebkitTapHighlightColor: theme`colors.secondary.500`,
-    ...tw`antialiased`,
   },
 
+  // Global styles for heading elements
   h1: {
     ...tw`text-h1-sm md:text-h1-md lg:text-h1-lg font-header font-extrabold`,
   },
-
   h2: {
     ...tw`text-h2-sm md:text-h2-md lg:text-h2-lg font-header font-bold`,
   },
-
   h3: {
     ...tw`text-h3-sm md:text-h3-md lg:text-h3-lg font-header font-semibold`,
   },
-
+  // Overline
   h4: {
     ...tw`text-o-sm md:text-o-md font-body font-light`,
   },
-
+  // Helper text
   h5: {
     ...tw`text-helper font-body font-extralight`,
   },
 
+  // Global styles for anchor element
   a: {
     ...tw`font-normal text-primary-500 hover:brightness-75 transition-all cursor-pointer`,
   },
 });
 
-const GlobalStyles = () => (
-  <>
-    <BaseStyles />
-    <CustomStyles />
-  </>
-);
-
-export default GlobalStyles;
+export function GlobalStyles() {
+  return (
+    <>
+      <BaseStyles />
+      <CustomStyles />
+    </>
+  );
+}
