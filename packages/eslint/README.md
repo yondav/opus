@@ -33,24 +33,41 @@ This package provides ESLint configurations for TypeScript projects, specificall
   - Warn on unused variables
   - Import order enforcement
 
-## Installation
+## Usage
 
-1. Install the package:
+1. Include in your `package.json`:
 
-   ```bash
-   npm install @yonbon/eslint --save-dev
+   ```json
+   {
+     // ...rest of package.json
+     "devDependencies": {
+       "@yonbon/eslint": "*"
+       // ... rest of devDependencies
+     }
+   }
    ```
 
 2. Create an ESLint configuration file in your project's root directory (e.g., .eslintrc.cjs) and extend the desired configuration:
 
 ```js
 // For API projects
-module.exports = require('@yonbon/eslint/eslintrc.api.cjs');
+const { join } = require('path');
+
+module.exports = {
+  extends: '../../node_modules/@yonbon/eslint/eslintrc.api.cjs',
+  parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    project: join(__dirname, 'tsconfig.eslint.json'),
+  },
+};
 ```
 
 ```js
 // For React projects
-module.exports = require('@yonbon/eslint/eslintrc.react.cjs');
+module.exports = {
+  extends: '../../node_modules/@yonbon/eslint/eslintrc.react.cjs',
+};
 ```
 
 ## Dependencies
