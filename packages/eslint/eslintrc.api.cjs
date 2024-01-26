@@ -1,13 +1,10 @@
+// @yonbon/eslint/eslintrc.api.cjs
+
 const rules = require('./eslintrc.typescript.cjs');
 
 module.exports = {
   ignorePatterns: ['node_modules/*', 'dist', '.eslintrc.cjs'],
   parser: '@typescript-eslint/parser',
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: 'tsconfig.eslint.json',
-  },
   extends: [
     'plugin:@typescript-eslint/recommended',
     'plugin:import/recommended',

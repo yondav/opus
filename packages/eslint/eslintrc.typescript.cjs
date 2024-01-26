@@ -1,3 +1,5 @@
+// @yonbon/eslint/eslintrc.typescript.cjs
+
 module.exports = {
   'no-console': 1,
   '@typescript-eslint/consistent-type-imports': 'error',

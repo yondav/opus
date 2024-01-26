@@ -1,3 +1,5 @@
+// @yonbon/eslint/eslintrc.react.cjs
+
 const rules = require('./eslintrc.typescript.cjs');
 
 module.exports = {
@@ -27,7 +29,6 @@ module.exports = {
     'react-hooks/exhaustive-deps': 2,
     'react/jsx-uses-react': 'off',
     'react/react-in-jsx-scope': 'off',
-
     'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
   },
 };
