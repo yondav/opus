@@ -2,15 +2,11 @@
 
 import type { User } from '@prisma/client';
 
-import type { Nullable } from './types.generic';
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data: Nullable<T>;
-  error: Nullable<Error>;
-  message: string;
-}
-
+/**
+ * Represents the decoded content of a JWT (JSON Web Token).
+ * email and id associated with the JWT
+ * timestamps for when the JWT was issues and when it expires
+ */
 export interface DecodedJwtToken {
   email: string;
   id: number;
@@ -18,6 +14,9 @@ export interface DecodedJwtToken {
   exp: number;
 }
 
+/**
+ * Represents a user along with an access token.
+ */
 export interface UserWithToken extends User {
   access_token: string;
 }
