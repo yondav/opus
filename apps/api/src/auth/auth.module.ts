@@ -1,27 +1,42 @@
 // src/auth/auth.module.ts
 
+import type { OnApplicationBootstrap } from '@nestjs/common';
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 
 import { PrismaService } from '../prisma';
+import { UsersService } from '../users';
 
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { GitHub, Google, Local } from './strategies';
+import { GitHub, Google, JWT, Local } from './strategies';
 
 /**
  * AuthModule is responsible for handling authentication-related functionalities.
  */
 @Module({
-  // Specify the controllers associated with the AuthModule
+  imports: [
+    ConfigModule.forRoot({
+      envFilePath: [`.env.${process.env.NODE_ENV}.local`, '.env.development.local'],
+    }),
+    JwtModule.register({
+      secret: process.env.SESSION_SECRET,
+    }),
+  ],
+
   controllers: [AuthController],
 
-  // Declare the providers used within the AuthModule for dependency injection
   providers: [
-    AuthService, // Service handling authentication logic
-    Google.Strategy, // Google authentication strategy
-    GitHub.Strategy, // GitHub authentication strategy
-    Local.Strategy, // Local authentication strategy (email/password)
-    PrismaService, // Prisma service for interacting with the database
+    AuthService,
+    UsersService,
+    Google.Strategy,
+    GitHub.Strategy,
+    Local.Strategy,
+    JWT.Strategy,
+    PrismaService,
   ],
 })
-export class AuthModule {}
+export class AuthModule implements OnApplicationBootstrap {
+  async onApplicationBootstrap() {}
+}
