@@ -87,4 +87,32 @@ export class UsersService {
       return ApiResponse.fromException(err);
     }
   }
+
+  /**
+   * Deletes a user from the database by their ID.
+   * @param {number} id - The ID of the user to be deleted.
+   * @returns {Promise<ApiResponse<void>>} A promise that resolves to an ApiResponse
+   * indicating the success or failure of the deletion operation.
+   */
+  async deleteUser(id: number): Promise<ApiResponse<void>> {
+    try {
+      // Check if the ID is empty or not a valid number
+      if (isEmpty(id)) throw new IsEmptyException('id');
+
+      // Attempt to retrieve the user from the database using the ID
+      const user = await this.prisma.user.findUnique({ where: { id } });
+
+      // If no user found, return an error ApiResponse
+      if (!user) return ApiResponse.error(new NotFoundException(`user ${id}`));
+
+      // If user was found, delete the user from the database
+      await this.prisma.user.delete({ where: { id } });
+
+      // Return a success ApiResponse indicating successful deletion
+      return ApiResponse.success(null, `user ${id} deleted successfully`);
+    } catch (err) {
+      // If an exception occurs during the process, return an ApiResponse with the exception details
+      return ApiResponse.fromException(err);
+    }
+  }
 }
