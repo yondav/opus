@@ -1,13 +1,16 @@
+import path = require('path');
+
 import { config as dotenvConfig } from 'dotenv';
 import type { Config } from 'jest';
 
-dotenvConfig();
+dotenvConfig({ path: path.join(__dirname, '.env.development.local') });
 
 // Define directories to be ignored during testing.
 const ignoreDirs = ['dist/', 'node_modules/'];
 
 // Define the Jest configuration options.
 const config = async (): Promise<Config> => ({
+  setupFiles: ['dotenv/config'],
   preset: 'ts-jest', // Use the 'ts-jest' preset for TypeScript.
   testEnvironment: 'node', // Use Node.js as the test environment.
   bail: 0, // Do not bail on the first test failure (0 means no bail).
