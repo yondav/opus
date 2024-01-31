@@ -8,6 +8,8 @@ import { IsEmptyException, NotFoundException } from '../exceptions';
 import { PrismaService } from '../prisma';
 import { ApiResponse, type Nullable } from '../utils';
 
+import type * as Dto from './dtos';
+
 /**
  * UserService handles user functionality.
  */
@@ -55,6 +57,31 @@ export class UsersService {
 
       // If user was found, return a success ApiResponse with the user data
       return ApiResponse.success(user, `user ${id} retrieved successfully`);
+    } catch (err) {
+      // If an exception occurs during the process, return an ApiResponse with the exception details
+      return ApiResponse.fromException(err);
+    }
+  }
+
+  /**
+   * Retrieves a user by email address from the database.
+   * @param {string} email - The email address of the user to retrieve.
+   * @returns {Promise<ApiResponse<User>>} A promise that resolves to an ApiResponse
+   * containing the retrieved user or an error message.
+   */
+  async getUserByEmail(email: Dto.Create['email']): Promise<ApiResponse<User>> {
+    try {
+      // Check if the email is empty or not a valid string
+      if (isEmpty(email)) throw new IsEmptyException('email');
+
+      // Attempt to retrieve the user from the database using the email
+      const user = await this.prisma.user.findUnique({ where: { email } });
+
+      // If no user found, return an error ApiResponse
+      if (!user) return ApiResponse.error(new NotFoundException(`user ${email}`));
+
+      // If user was found, return a success ApiResponse with the user data
+      return ApiResponse.success(user, `user ${email} retrieved successfully`);
     } catch (err) {
       // If an exception occurs during the process, return an ApiResponse with the exception details
       return ApiResponse.fromException(err);
