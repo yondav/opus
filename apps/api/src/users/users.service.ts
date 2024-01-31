@@ -4,13 +4,14 @@ import { Injectable } from '@nestjs/common';
 import type { User } from '@prisma/client';
 import { isEmpty } from 'class-validator';
 
+import { PrismaService } from '../prisma';
 import {
+  ApiResponse,
   IsEmptyException,
   NotFoundException,
   UnauthorizedException,
-} from '../exceptions';
-import { PrismaService } from '../prisma';
-import { ApiResponse, type Nullable } from '../utils';
+  type Nullable,
+} from '../utils';
 
 import type * as Dto from './dtos';
 
