@@ -154,4 +154,34 @@ export class UsersService {
       return ApiResponse.fromException(err);
     }
   }
+
+  /**
+   * Edits an existing user in the database.
+   * @param {number} id - The ID of the user to be edited.
+   * @param {Partial<Dto.Edit>} data - The partial data to update the user.
+   * @returns {Promise<ApiResponse<User>>} A promise that resolves to an ApiResponse
+   * indicating the success or failure of the user edit operation.
+   */
+  async editUser(id: number, data: Partial<Dto.Edit>): Promise<ApiResponse<User>> {
+    try {
+      // Check if the user ID is empty
+      if (isEmpty(id)) throw new IsEmptyException('id');
+
+      // Get the existing user with the provided ID
+      const existingUser = await this.getUserById(id);
+
+      // If the existing user is not found, return an error ApiResponse
+      if (!existingUser.success)
+        return ApiResponse.error(new NotFoundException(`user ${id}`));
+
+      // Update the user in the database with the provided partial data
+      const user = await this.prisma.user.update({ where: { id }, data });
+
+      // Return a success ApiResponse indicating successful user modification
+      return ApiResponse.success(user, `user ${id} successfully modified`);
+    } catch (err) {
+      // If an exception occurs during the process, return an ApiResponse with the exception details
+      return ApiResponse.fromException(err);
+    }
+  }
 }
