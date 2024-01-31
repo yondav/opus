@@ -4,7 +4,11 @@ import { Injectable } from '@nestjs/common';
 import type { User } from '@prisma/client';
 import { isEmpty } from 'class-validator';
 
-import { IsEmptyException, NotFoundException } from '../exceptions';
+import {
+  IsEmptyException,
+  NotFoundException,
+  UnauthorizedException,
+} from '../exceptions';
 import { PrismaService } from '../prisma';
 import { ApiResponse, type Nullable } from '../utils';
 
@@ -110,6 +114,41 @@ export class UsersService {
 
       // Return a success ApiResponse indicating successful deletion
       return ApiResponse.success(null, `user ${id} deleted successfully`);
+    } catch (err) {
+      // If an exception occurs during the process, return an ApiResponse with the exception details
+      return ApiResponse.fromException(err);
+    }
+  }
+
+  /**
+   * Creates a new user in the database.
+   * @param {Dto.Create} data - The user registration data.
+   * @returns {Promise<ApiResponse<User>>} A promise that resolves to an ApiResponse
+   * indicating the success or failure of the user creation operation.
+   */
+  async createUser(data: Dto.Create): Promise<ApiResponse<User>> {
+    try {
+      // Check if the registration data is empty
+      if (isEmpty(data)) throw new IsEmptyException('registration data');
+
+      const { email } = data;
+
+      // Check if a user with the same email already exists
+      const existingUser = await this.getUserByEmail(email);
+
+      // If a user with the same email exists, return an error ApiResponse
+      if (existingUser.success)
+        return ApiResponse.error(
+          new UnauthorizedException(
+            `account already exists for ${existingUser.data.email}`
+          )
+        );
+
+      // If no existing user, create a new user in the database
+      const user = await this.prisma.user.create({ data });
+
+      // Return a success ApiResponse indicating successful user creation
+      return ApiResponse.success(user, `user ${user.email} created successfully`);
     } catch (err) {
       // If an exception occurs during the process, return an ApiResponse with the exception details
       return ApiResponse.fromException(err);
