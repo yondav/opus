@@ -1,12 +1,20 @@
 // src/auth/auth.service.ts
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import type { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { isEmpty } from 'class-validator';
 
 import { UsersService } from '../users';
-import { ApiResponse, IsEmptyException, UnauthorizedException } from '../utils';
+import {
+  ApiResponse,
+  IsEmptyException,
+  NotFoundException,
+  UnauthorizedException,
+  type DecodedJwtToken,
+  type Nullable,
+} from '../utils';
 
 import type * as Dto from './dtos';
 
@@ -15,7 +23,74 @@ import type * as Dto from './dtos';
  */
 @Injectable()
 export class AuthService {
-  constructor(private readonly usersService: UsersService) {}
+  private logger: Logger;
+
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService
+  ) {
+    this.logger = new Logger();
+  }
+
+  /**
+   * Generates a JWT token based on the provided payload.
+   *
+   * @param {Pick<User, 'email' | 'id'>} payload - The payload for the JWT.
+   * @param {boolean} [refresh=false] - Indicates whether to generate a refresh token.
+   * @returns {string} - The generated JWT token.
+   */
+  generateJwtToken(
+    payload: Pick<User, 'email' | 'id'>,
+    refresh: boolean = false
+  ): string {
+    const expiresIn = refresh ? process.env.REFRESH_EXPIRY : process.env.SESSION_EXPIRY;
+
+    return this.jwtService.sign(payload, {
+      expiresIn,
+      secret: process.env.SESSION_SECRET,
+    });
+  }
+
+  /**
+   * Verifies a JWT token and returns the decoded payload.
+   *
+   * @param {string} token - The JWT token to verify.
+   * @returns {Nullable<DecodedJwtToken>} - The decoded JWT payload or null if verification fails.
+   */
+  verifyJwtToken(token: string): Nullable<DecodedJwtToken> {
+    try {
+      const decoded = this.jwtService.verify<DecodedJwtToken>(token, {
+        secret: process.env.SESSION_SECRET,
+      });
+
+      return decoded;
+    } catch (err) {
+      this.logger.error(err);
+      return null;
+    }
+  }
+
+  /**
+   * Validates a user's credentials.
+   *
+   * @param {string} email - The user's email address.
+   * @param {string} password - The user's password.
+   * @returns {Promise<ApiResponse<User>>} - A user object if validation is successful, otherwise null.
+   * @throws {NotFoundException} - If the user with the specified email is not found.
+   */
+  async validateUser(email: string, password: string): Promise<ApiResponse<User>> {
+    const user = await this.usersService.getUserByEmail(email);
+
+    if (!user.success) throw new NotFoundException(`user ${email}`);
+
+    const passwordComparison = user
+      ? await bcrypt.compare(password, user.data.password)
+      : false;
+
+    if (passwordComparison) return user;
+
+    return null;
+  }
 
   /**
    * Creates a new user with the provided email and password.
