@@ -1,15 +1,22 @@
 // src/auth/auth.controller.ts
 
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Request } from 'express';
+
+import { AuthService } from './auth.service';
 import * as Dto from './dtos';
-import { GitHub, Google, Local } from './strategies';
+import { GitHub, Google, JWT, Local } from './strategies';
 
 /**
  * AuthController handles authentication-related routes.
  */
 @Controller('auth')
 export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
   /**
    * Initiates the Google OAuth login process.
    * PLACEHOLDER
@@ -52,14 +59,37 @@ export class AuthController {
   }
 
   /**
-   * Handles the local user signup process.
-   * @param data - User signup data
-   * PLACEHOLDER
+   * Local user sign up.
+   * @param data - User sign up data
    */
   @Post('local/signup')
+  async signup(@Body() body: Dto.Signup) {
+    const { data, ...rest } = await this.authService.localSignup(body);
+
+    // Omitting password from user data for security reasons
+    const { password, ...user } = data;
+
+    return { ...rest, data: user };
+  }
+
+  /**
+   * Local user sign in.
+   * @param req
+   */
+  @Post('local/signin')
   @UseGuards(Local.Guard)
-  async signup(@Body() data: Dto.Signup) {
-    // This endpoint will only be reached if local authentication is successful
-    return data;
+  async login(@Req() req: Request) {
+    const { data, ...rest } = await this.authService.login(req.user);
+
+    // Omitting password from user data for security reasons
+    const { password, ...user } = data;
+
+    return { ...rest, data: user };
+  }
+
+  @UseGuards(JWT.Guard)
+  @Get('session')
+  async getProfile(@Req() req) {
+    return req.user;
   }
 }
