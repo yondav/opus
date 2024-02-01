@@ -34,6 +34,7 @@ export class AuthTokenMiddleware implements NestMiddleware {
       // Verify the JWT token and get the decoded payload
       const decoded = this.authService.verifyJwtToken(token);
 
+      if (!decoded) throw new UnauthorizedException('invalid token');
       // Get the current time and token expiry details
       const currentTime = Date.now();
       const tokenExpiry = decoded.exp * 1000; // Convert seconds to milliseconds
@@ -54,7 +55,7 @@ export class AuthTokenMiddleware implements NestMiddleware {
       next();
     } catch (err) {
       return res
-        .status(400)
+        .status(401)
         .json({ success: false, data: null, error: err, message: '' });
     }
   }
