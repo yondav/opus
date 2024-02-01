@@ -3,7 +3,16 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { Request } from 'express';
 
 import { AuthService } from './auth.service';
@@ -79,12 +88,17 @@ export class AuthController {
   @Post('local/signin')
   @UseGuards(Local.Guard)
   async login(@Req() req: Request) {
-    const { data, ...rest } = await this.authService.login(req.user);
+    const { data, ...rest } = await this.authService.localLogin(req.user);
 
     // Omitting password from user data for security reasons
     const { password, ...user } = data;
 
     return { ...rest, data: user };
+  }
+
+  @Patch('local/signout/:id')
+  async logout(@Param('id') id: `${number}`) {
+    return this.authService.localLogout(Number(id));
   }
 
   @UseGuards(JWT.Guard)

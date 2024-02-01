@@ -1,9 +1,11 @@
 // src/auth/auth.service.ts
 
-import { Injectable, Logger } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { Cache } from 'cache-manager';
 import { isEmpty } from 'class-validator';
 import type { Request } from 'express';
 
@@ -29,6 +31,7 @@ export class AuthService {
   private logger: Logger;
 
   constructor(
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService
   ) {
@@ -42,16 +45,28 @@ export class AuthService {
    * @param {boolean} [refresh=false] - Indicates whether to generate a refresh token.
    * @returns {string} - The generated JWT token.
    */
-  generateJwtToken(
+  async generateJwtToken(
     payload: Pick<User, 'email' | 'id'>,
     refresh: boolean = false
-  ): string {
-    const expiresIn = refresh ? process.env.REFRESH_EXPIRY : process.env.SESSION_EXPIRY;
+  ): Promise<string> {
+    try {
+      const expiresIn = Number(
+        refresh ? process.env.REFRESH_EXPIRY : process.env.SESSION_EXPIRY
+      );
 
-    return this.jwtService.sign(payload, {
-      expiresIn,
-      secret: process.env.SESSION_SECRET,
-    });
+      const token = this.jwtService.sign(payload, {
+        expiresIn,
+        secret: process.env.SESSION_SECRET,
+      });
+
+      // Post newly created token to cache
+      await this.cacheManager.set(payload.id.toString(), token, expiresIn);
+
+      return token;
+    } catch (err) {
+      this.logger.error(err);
+      throw err;
+    }
   }
 
   /**
@@ -60,11 +75,17 @@ export class AuthService {
    * @param {string} token - The JWT token to verify.
    * @returns {Nullable<DecodedJwtToken>} - The decoded JWT payload or null if verification fails.
    */
-  verifyJwtToken(token: string): Nullable<DecodedJwtToken> {
+  async verifyJwtToken(token: string): Promise<Nullable<DecodedJwtToken>> {
     try {
       const decoded = this.jwtService.verify<DecodedJwtToken>(token, {
         secret: process.env.SESSION_SECRET,
       });
+
+      if (!decoded) throw new BadRequestException('invalid jwt token');
+
+      const inCache = await this.cacheManager.get(decoded.id.toString());
+
+      if (!inCache) throw new UnauthorizedException('jwt token is no longer valid');
 
       return decoded;
     } catch (err) {
@@ -166,7 +187,7 @@ export class AuthService {
       // Log in the user and obtain an access token
       const {
         data: { access_token },
-      } = await this.login(user);
+      } = await this.localLogin(user);
 
       // Return a success response with the created user information and access token
       return ApiResponse.success(
@@ -187,7 +208,7 @@ export class AuthService {
    * @param {Request['user']} req - The user data from the request.
    * @returns {Promise<ApiResponse<UserWithToken>>} - ApiResponse containing user information with an access token or an error.
    */
-  async login(req: Request['user']): Promise<ApiResponse<UserWithToken>> {
+  async localLogin(req: Request['user']): Promise<ApiResponse<UserWithToken>> {
     try {
       // Cast the user response from the request to ApiResponse<User>
       const userResponse = req as ApiResponse<User>;
@@ -199,7 +220,7 @@ export class AuthService {
       const user = await this.usersService.getUserById(payload.id);
 
       // Generate an access token using the payload information
-      const accessToken = this.generateJwtToken(payload);
+      const accessToken = await this.generateJwtToken(payload);
 
       // Return a success response with the user information and access token
       return ApiResponse.success(
@@ -209,6 +230,17 @@ export class AuthService {
         },
         `user ${payload.email} logged in`
       );
+    } catch (err) {
+      // Return an error response in case of exceptions
+      return ApiResponse.error(err);
+    }
+  }
+
+  async localLogout(id: number) {
+    try {
+      await this.cacheManager.del(id.toString());
+
+      return ApiResponse.success(null, `user ${id} logged out`);
     } catch (err) {
       // Return an error response in case of exceptions
       return ApiResponse.error(err);
