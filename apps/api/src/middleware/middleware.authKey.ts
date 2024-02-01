@@ -45,12 +45,7 @@ export class ApiKeyMiddleware implements NestMiddleware {
 
       next();
     } catch (err) {
-      return res.status(401).json({
-        success: false,
-        data: null,
-        error: err,
-        message: 'api key not valid',
-      });
+      next(err);
     }
   }
 }

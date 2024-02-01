@@ -22,7 +22,7 @@ export class AuthTokenMiddleware implements NestMiddleware {
    * @param {NextFunction} next - The next middleware function.
    * @returns {void}
    */
-  use(req: Request, res: Response, next: NextFunction) {
+  async use(req: Request, res: Response, next: NextFunction) {
     try {
       // Extract the JWT token from the Authorization header
       const authHeader = req.headers['authorization'];
@@ -32,7 +32,9 @@ export class AuthTokenMiddleware implements NestMiddleware {
       if (!token) throw new UnauthorizedException('no token provided');
 
       // Verify the JWT token and get the decoded payload
-      const decoded = this.authService.verifyJwtToken(token);
+      const decoded = await this.authService.verifyJwtToken(token);
+
+      // console.log({ decoded });
 
       if (!decoded) throw new UnauthorizedException('invalid token');
       // Get the current time and token expiry details
@@ -42,7 +44,7 @@ export class AuthTokenMiddleware implements NestMiddleware {
 
       // Check if the token is within 5 minutes of expiring and refresh it if needed
       if (tokenExpiry - currentTime < tokenExpiryThreshold) {
-        const refreshToken = this.authService.generateJwtToken(
+        const refreshToken = await this.authService.generateJwtToken(
           { email: decoded.email, id: decoded.id },
           true
         );
@@ -54,9 +56,7 @@ export class AuthTokenMiddleware implements NestMiddleware {
 
       next();
     } catch (err) {
-      return res
-        .status(401)
-        .json({ success: false, data: null, error: err, message: '' });
+      next(err);
     }
   }
 }
