@@ -2,12 +2,13 @@
 
 import { join } from 'path';
 
-import type { MiddlewareConsumer } from '@nestjs/common';
-import { Module } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
+import { Module, type MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import * as redisStore from 'cache-manager-redis-store';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -25,6 +26,13 @@ import { ApiExceptionFilter } from './utils';
     // Configuration module to load environment variables
     ConfigModule.forRoot({
       envFilePath: [`.env.${process.env.NODE_ENV}.local`, '.env.development.local'],
+    }),
+
+    CacheModule.register({
+      isGlobal: true,
+      store: redisStore,
+      host: process.env.CACHE_HOST,
+      port: process.env.CACHE_PORT,
     }),
 
     // Authentication module for handling user authentication
