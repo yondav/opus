@@ -20,3 +20,9 @@ export interface DecodedJwtToken {
 export interface UserWithToken extends User {
   access_token: string;
 }
+
+export interface CachedToken {
+  id: string;
+  token: string;
+  device: string;
+}
