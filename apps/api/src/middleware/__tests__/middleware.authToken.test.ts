@@ -8,7 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Test, type TestingModule } from '@nestjs/testing';
 import type { Request, Response } from 'express';
 
-import { AuthService } from '../../auth';
+import { AuthService, AuthSessionService } from '../../auth';
 import { PrismaService } from '../../prisma';
 import { UsersService } from '../../users';
 import { AuthTokenMiddleware } from '../middleware.authToken';
@@ -17,19 +17,16 @@ describe('AuthTokenMiddleware', () => {
   let middleware: AuthTokenMiddleware;
 
   const validToken =
-    'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3QxQHRlc3QuY29tIiwiaWQiOjY3LCJpYXQiOjE3MDY4MDYyMjcsImV4cCI6MTcwNjg5MjYyN30.WDV9u8wjWFwrUnmjOCTMgp3HDW0GWee0YLLpm9Y3IsU';
+    'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3QxQHRlc3QuY29tIiwiaWQiOjY3LCJkZXZpY2UiOiJpbnNvbW5pYS84LjQuMCIsImlhdCI6MTcwNjg5MDA5MywiZXhwIjoxNzA2OTc2NDkzfQ.rr45NBVpvOvT1cbfp0MizlxBLNdcilYFt-Cyu0e-f6Y';
 
   beforeEach(async () => {
-    const cacheManagerMock = {
-      // get: jest.fn(),
-      set: jest.fn(),
-      // del: jest.fn(),
-    };
+    const cacheManagerMock = { set: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthTokenMiddleware,
         AuthService,
+        AuthSessionService,
         UsersService,
         JwtService,
         PrismaService,
@@ -90,14 +87,19 @@ describe('AuthTokenMiddleware', () => {
 
     it('should create a refresh token when API Token is within 5 minutes of expiration', async () => {
       // Mock the authService.verifyJwtToken to return a decoded token with 4 minutes until expiration
-      jest.spyOn(middleware['authService'], 'verifyJwtToken').mockReturnValueOnce(
-        Promise.resolve({
-          exp: Math.floor(Date.now() / 1000) + 240, // 4 minutes in the future
-          iat: Math.floor(Date.now() / 1000) - 23 * 60 * 60 - 56 * 60,
-          email: 'test1@test.com',
-          id: 67,
-        })
-      );
+      jest
+        .spyOn(middleware['authService']['sessionService'], 'verifyJwtToken')
+        .mockReturnValueOnce(
+          Promise.resolve({
+            sessionId: '',
+            decoded: {
+              exp: Math.floor(Date.now() / 1000) + 240, // 4 minutes in the future
+              iat: Math.floor(Date.now() / 1000) - 23 * 60 * 60 - 56 * 60,
+              email: 'test1@test.com',
+              id: 67,
+            },
+          })
+        );
 
       const req = {
         headers: {

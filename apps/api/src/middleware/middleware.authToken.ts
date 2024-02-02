@@ -32,7 +32,10 @@ export class AuthTokenMiddleware implements NestMiddleware {
       if (!token) throw new UnauthorizedException('no token provided');
 
       // Verify the JWT token and get the decoded payload
-      const decoded = await this.authService.verifyJwtToken(token);
+      const { sessionId, decoded } = await this.authService.sessionService.verifyJwtToken(
+        token,
+        req.headers['user-agent']
+      );
 
       // console.log({ decoded });
 
@@ -44,8 +47,13 @@ export class AuthTokenMiddleware implements NestMiddleware {
 
       // Check if the token is within 5 minutes of expiring and refresh it if needed
       if (tokenExpiry - currentTime < tokenExpiryThreshold) {
-        const refreshToken = await this.authService.generateJwtToken(
-          { email: decoded.email, id: decoded.id },
+        const refreshToken = await this.authService.sessionService.generateJwtToken(
+          {
+            email: decoded.email,
+            id: decoded.id,
+            device: req.headers['user-agent'],
+            sessionId,
+          },
           true
         );
 
