@@ -12,8 +12,12 @@ import * as redisStore from 'cache-manager-redis-store';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule, AuthService } from './auth';
-import { ApiKeyMiddleware, AuthTokenMiddleware } from './middleware';
+import { AuthModule, AuthService, AuthSessionService } from './auth';
+import {
+  ApiKeyMiddleware,
+  AuthTokenMiddleware,
+  SessionLimitMiddleware,
+} from './middleware';
 import { PrismaModule } from './prisma';
 import { UsersModule, UsersService } from './users';
 import { ApiExceptionFilter } from './utils';
@@ -56,6 +60,7 @@ import { ApiExceptionFilter } from './utils';
   providers: [
     AppService,
     AuthService,
+    AuthSessionService,
     UsersService,
     JwtService,
     { provide: APP_FILTER, useClass: ApiExceptionFilter },
@@ -63,6 +68,7 @@ import { ApiExceptionFilter } from './utils';
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
+    consumer.apply(SessionLimitMiddleware).forRoutes('auth/local/signin');
     consumer.apply(AuthTokenMiddleware).forRoutes('users');
     consumer.apply(ApiKeyMiddleware).forRoutes('users');
   }

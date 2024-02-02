@@ -72,8 +72,8 @@ export class AuthController {
    * @param data - User sign up data
    */
   @Post('local/signup')
-  async signup(@Body() body: Dto.Signup) {
-    const { data, ...rest } = await this.authService.localSignup(body);
+  async signup(@Req() req: Request, @Body() body: Dto.Signup) {
+    const { data, ...rest } = await this.authService.localSignup(req, body);
 
     // Omitting password from user data for security reasons
     const { password, ...user } = data;
@@ -88,7 +88,7 @@ export class AuthController {
   @Post('local/signin')
   @UseGuards(Local.Guard)
   async login(@Req() req: Request) {
-    const { data, ...rest } = await this.authService.localLogin(req.user);
+    const { data, ...rest } = await this.authService.localLogin(req.user, req.headers);
 
     // Omitting password from user data for security reasons
     const { password, ...user } = data;

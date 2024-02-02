@@ -10,6 +10,7 @@ import { UsersService } from '../users';
 
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { AuthSessionService } from './auth.session.service';
 import { GitHub, Google, JWT, Local } from './strategies';
 
 /**
@@ -29,6 +30,7 @@ import { GitHub, Google, JWT, Local } from './strategies';
 
   providers: [
     AuthService,
+    AuthSessionService,
     UsersService,
     Google.Strategy,
     GitHub.Strategy,
