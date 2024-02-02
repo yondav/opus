@@ -33,7 +33,8 @@ export class UsersService {
       const users = await this.prisma.user.findMany();
 
       // If no users found, return an error ApiResponse
-      if (!users) return ApiResponse.error(new NotFoundException('users'), 'users');
+      if (!users)
+        return ApiResponse.error(new NotFoundException('users'), 'users not found');
 
       // If users were found, return a success ApiResponse with the user data
       return ApiResponse.success(users, 'All users retrieved successfully');
@@ -105,10 +106,10 @@ export class UsersService {
       if (isEmpty(id)) throw new IsEmptyException('id');
 
       // Attempt to retrieve the user from the database using the ID
-      const user = await this.prisma.user.findUnique({ where: { id } });
+      const user = await this.getUserById(id);
 
       // If no user found, return an error ApiResponse
-      if (!user) return ApiResponse.error(new NotFoundException(`user ${id}`));
+      if (!user.success) return ApiResponse.error(user.error);
 
       // If user was found, delete the user from the database
       await this.prisma.user.delete({ where: { id } });

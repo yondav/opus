@@ -42,6 +42,7 @@ export class UsersController {
   async getUserById(@Param('id') id: `${number}`) {
     const { data, ...rest } = await this.usersService.getUserById(Number(id));
 
+    if (!rest.success) return { ...rest, data: null };
     // Omitting password from user data for security reasons
     const { password, ...user } = data;
 
