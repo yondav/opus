@@ -63,36 +63,29 @@ describe('NotFoundException', () => {
 
 describe('ApiExceptionFilter', () => {
   it('should handle and send a structured error response for ApiException', () => {
-    // Create a mock response object with jest.fn() methods.
     const response: Partial<Response> = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
     };
 
-    // Create a mock host with a mock switchToHttp method.
     const host = {
       switchToHttp: () => ({
         getResponse: () => response,
       }),
     } as ArgumentsHost;
 
-    // Create an instance of ApiException.
     const exception = new ApiException(
       'Test message',
       HttpStatus.BAD_REQUEST,
       'TEST_CODE'
     );
 
-    // Create an instance of the ApiExceptionFilter.
     const filter = new ApiExceptionFilter();
 
-    // Call the catch method on the filter.
     filter.catch(exception, host);
 
-    // Assert that the response status method was called with the correct status code.
     expect(response.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
 
-    // Assert that the response json method was called with the expected payload.
     expect(response.json).toHaveBeenCalledWith({
       code: 'TEST_CODE',
       message: 'Test message',

@@ -25,7 +25,6 @@ describe('UsersService', () => {
   let userService: UsersService;
 
   beforeEach(async () => {
-    // Create a testing module with the mocked PrismaService
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
@@ -36,7 +35,6 @@ describe('UsersService', () => {
       ],
     }).compile();
 
-    // Get the instance of the UsersService
     userService = module.get<UsersService>(UsersService);
   });
 
