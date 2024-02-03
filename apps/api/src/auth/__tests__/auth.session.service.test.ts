@@ -96,12 +96,11 @@ describe('AuthSessionService', () => {
 
       expect(token).toBeDefined();
 
-      // Adjust the regular expression and the expected device value based on your actual implementation
       expect(cacheManagerMock.set).toHaveBeenCalledWith(
         expect.stringMatching('user:1:mocked-random-uuid'),
         {
           token,
-          device: expect.any(String), // Update this expectation
+          device: expect.any(String),
         },
         expect.any(Number)
       );
@@ -218,7 +217,7 @@ describe('AuthSessionService', () => {
         expect.stringMatching('user:1:mocked-random-uuid'),
         {
           device: expect.any(String),
-          token: 'generated-token', // Adjust the expected token value if necessary
+          token: 'generated-token',
         },
         expect.any(Number)
       );
@@ -245,25 +244,93 @@ describe('AuthSessionService', () => {
         id: `user:${id}:mocked-random-uuid`,
         device: 'web',
         token: 'some-jwt-token',
-        // Other properties of your CachedToken type
       };
 
-      // Mock the store.keys to simulate the presence of active sessions
       cacheManagerMock.store.keys.mockResolvedValue([`user:${id}:mocked-random-uuid`]);
 
-      // Mock the store.mget to simulate retrieving the cached session
       cacheManagerMock.store.mget.mockResolvedValue([expectedSession]);
 
       const result = await authSessionService.getSingleSessionFromCache(id, device);
 
-      // Ensure that store.keys and store.mget are called with the expected arguments
       expect(cacheManagerMock.store.keys).toHaveBeenCalledWith(`user:${id}*`);
       expect(cacheManagerMock.store.mget).toHaveBeenCalledWith(
         `user:${id}:mocked-random-uuid`
       );
 
-      // Ensure that the method returns the expected session
       expect(result).toEqual(expectedSession);
+    });
+  });
+
+  describe('getActiveSessionsFromCache', () => {
+    it('should return an empty array if no active sessions are found for the user', async () => {
+      const id = 1;
+
+      cacheManagerMock.store.keys.mockResolvedValue([]);
+
+      const result = await authSessionService.getActiveSessionsFromCache(id);
+
+      expect(cacheManagerMock.store.keys).toHaveBeenCalledWith(`user:${id}*`);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should return an array of active sessions if sessions are found for the user', async () => {
+      const id = 1;
+      const expectedSessions: CachedToken[] = [
+        {
+          id: 'user:1:some-session-id-1',
+          device: 'web',
+          token: 'some-jwt-token-1',
+        },
+        {
+          id: 'user:1:some-session-id-2',
+          device: 'mobile',
+          token: 'some-jwt-token-2',
+        },
+      ];
+
+      cacheManagerMock.store.keys.mockResolvedValue([
+        'user:1:some-session-id-1',
+        'user:1:some-session-id-2',
+      ]);
+
+      cacheManagerMock.store.mget.mockResolvedValue(expectedSessions);
+
+      const result = await authSessionService.getActiveSessionsFromCache(id);
+
+      expect(cacheManagerMock.store.keys).toHaveBeenCalledWith(`user:${id}*`);
+
+      expect(cacheManagerMock.store.mget).toHaveBeenCalledWith(
+        'user:1:some-session-id-1',
+        'user:1:some-session-id-2'
+      );
+
+      expect(result).toEqual(expectedSessions);
+    });
+  });
+
+  describe('deleteActiveSessionFromCache', () => {
+    it('should delete the active session from the cache', async () => {
+      const id = 1;
+
+      cacheManagerMock.del.mockResolvedValue(undefined);
+
+      await authSessionService.deleteActiveSessionFromCache(id);
+
+      expect(cacheManagerMock.del).toHaveBeenCalledWith(id.toString());
+    });
+
+    it('should log and rethrow an error if deletion fails', async () => {
+      const id = 1;
+      const errorMessage = 'Failed to delete session from cache';
+
+      cacheManagerMock.del.mockRejectedValue(new Error(`[Error: ${errorMessage}]`));
+
+      await expect(authSessionService.deleteActiveSessionFromCache(id)).rejects.toThrow(
+        errorMessage
+      );
+
+      expect(cacheManagerMock.del).toHaveBeenCalledWith(id.toString());
     });
   });
 });
