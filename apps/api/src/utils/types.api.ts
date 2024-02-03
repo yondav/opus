@@ -21,6 +21,9 @@ export interface UserWithToken extends User {
   access_token: string;
 }
 
+/**
+ * Represents a the shape of a token as it is stored in the cache.
+ */
 export interface CachedToken {
   id: string;
   token: string;

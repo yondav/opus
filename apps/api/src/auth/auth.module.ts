@@ -1,7 +1,6 @@
 // src/auth/auth.module.ts
 
-import type { OnApplicationBootstrap } from '@nestjs/common';
-import { Module } from '@nestjs/common';
+import { Module, type OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 
