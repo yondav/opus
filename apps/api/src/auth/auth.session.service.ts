@@ -79,7 +79,7 @@ export class AuthSessionService {
    */
   async verifyJwtToken(
     token: string,
-    device: string
+    device?: string
   ): Promise<Nullable<{ decoded: DecodedJwtToken; sessionId: string }>> {
     try {
       if (isEmpty(token)) throw new IsEmptyException('auth token');
@@ -142,7 +142,7 @@ export class AuthSessionService {
    * @returns {Promise<CachedToken>} - A Promise that resolves with the user session data if found.
    * @throws {Error} - Throws an error if there is any issue during the retrieval process.
    */
-  async getSingleSessionFromCache(id: number, device: string): Promise<CachedToken> {
+  async getSingleSessionFromCache(id: number, device?: string): Promise<CachedToken> {
     try {
       const activeSessions = await this.getActiveSessionsFromCache(id);
 
