@@ -33,8 +33,7 @@ export class UsersService {
       const users = await this.prisma.user.findMany();
 
       // If no users found, return an error ApiResponse
-      if (!users)
-        return ApiResponse.error(new NotFoundException('users'), 'users not found');
+      if (!users) return ApiResponse.fromException(new NotFoundException('users'));
 
       // If users were found, return a success ApiResponse with the user data
       return ApiResponse.success(users, 'All users retrieved successfully');
@@ -59,7 +58,7 @@ export class UsersService {
       const user = await this.prisma.user.findUnique({ where: { id } });
 
       // If no user found, return an error ApiResponse
-      if (!user) return ApiResponse.error(new NotFoundException(`user ${id}`));
+      if (!user) return ApiResponse.fromException(new NotFoundException(`user ${id}`));
 
       // If user was found, return a success ApiResponse with the user data
       return ApiResponse.success(user, `user ${id} retrieved successfully`);
@@ -84,7 +83,7 @@ export class UsersService {
       const user = await this.prisma.user.findUnique({ where: { email } });
 
       // If no user found, return an error ApiResponse
-      if (!user) return ApiResponse.error(new NotFoundException(`user ${email}`));
+      if (!user) return ApiResponse.fromException(new NotFoundException(`user ${email}`));
 
       // If user was found, return a success ApiResponse with the user data
       return ApiResponse.success(user, `user ${email} retrieved successfully`);
@@ -109,7 +108,7 @@ export class UsersService {
       const user = await this.getUserById(id);
 
       // If no user found, return an error ApiResponse
-      if (!user.success) return ApiResponse.error(user.error);
+      if (!user.success) return ApiResponse.fromException(user.error);
 
       // If user was found, delete the user from the database
       await this.prisma.user.delete({ where: { id } });
@@ -140,7 +139,7 @@ export class UsersService {
 
       // If a user with the same email exists, return an error ApiResponse
       if (existingUser.success)
-        return ApiResponse.error(
+        return ApiResponse.fromException(
           new UnauthorizedException(
             `account already exists for ${existingUser.data.email}`
           )
@@ -174,7 +173,7 @@ export class UsersService {
 
       // If the existing user is not found, return an error ApiResponse
       if (!existingUser.success)
-        return ApiResponse.error(new NotFoundException(`user ${id}`));
+        return ApiResponse.fromException(new NotFoundException(`user ${id}`));
 
       // Update the user in the database with the provided partial data
       const user = await this.prisma.user.update({ where: { id }, data });

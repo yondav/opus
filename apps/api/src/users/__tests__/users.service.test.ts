@@ -39,7 +39,7 @@ describe('UsersService', () => {
   });
 
   describe('getAllUsers', () => {
-    it('should return an error if an id is not provided', async () => {
+    it('should return all users', async () => {
       prismaServiceMock.user.findMany.mockResolvedValueOnce([
         {
           id: 1,
@@ -67,9 +67,7 @@ describe('UsersService', () => {
       prismaServiceMock.user.findMany.mockResolvedValueOnce(null);
 
       const result = await userService.getAllUsers();
-      expect(result).toEqual(
-        ApiResponse.error(new NotFoundException('users'), 'users not found')
-      );
+      expect(result).toEqual(ApiResponse.fromException(new NotFoundException('users')));
     });
   });
 
@@ -78,9 +76,7 @@ describe('UsersService', () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-expect-error
       const result = await userService.getUserById();
-      expect(result).toEqual(
-        ApiResponse.error(new IsEmptyException('id'), 'id must be provided')
-      );
+      expect(result).toEqual(ApiResponse.fromException(new IsEmptyException('id')));
     });
 
     it('should return a user if found', async () => {
@@ -107,7 +103,7 @@ describe('UsersService', () => {
       prismaServiceMock.user.findUnique.mockResolvedValueOnce(null);
 
       const result = await userService.getUserById(1);
-      expect(result).toEqual(ApiResponse.error(new NotFoundException('user 1')));
+      expect(result).toEqual(ApiResponse.fromException(new NotFoundException('user 1')));
     });
   });
 
@@ -116,9 +112,7 @@ describe('UsersService', () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-expect-error
       const result = await userService.getUserByEmail();
-      expect(result).toEqual(
-        ApiResponse.error(new IsEmptyException('email'), 'email must be provided')
-      );
+      expect(result).toEqual(ApiResponse.fromException(new IsEmptyException('email')));
     });
 
     it('should return a user if found', async () => {
@@ -141,8 +135,9 @@ describe('UsersService', () => {
       prismaServiceMock.user.findUnique.mockResolvedValueOnce(null);
 
       const result = await userService.getUserByEmail('johndoe@example.com');
+
       expect(result).toEqual(
-        ApiResponse.error(new NotFoundException('user johndoe@example.com'))
+        ApiResponse.fromException(new NotFoundException('user johndoe@example.com'))
       );
     });
   });
@@ -152,20 +147,20 @@ describe('UsersService', () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-expect-error
       const result = await userService.deleteUser();
-      expect(result).toEqual(
-        ApiResponse.error(new IsEmptyException('id'), 'id must be provided')
-      );
+      expect(result).toEqual(ApiResponse.fromException(new IsEmptyException('id')));
     });
 
     it('should return an error if user is not found', async () => {
       jest
         .spyOn(userService, 'getUserById')
-        .mockResolvedValueOnce(ApiResponse.error(new NotFoundException('user 1')));
+        .mockResolvedValueOnce(
+          ApiResponse.fromException(new NotFoundException('user 1'))
+        );
 
       const result = await userService.deleteUser(1);
 
       expect(userService.getUserById).toHaveBeenCalledWith(1);
-      expect(result).toEqual(ApiResponse.error(new NotFoundException('user 1')));
+      expect(result).toEqual(ApiResponse.fromException(new NotFoundException('user 1')));
     });
 
     it('should delete the user if found', async () => {
@@ -192,10 +187,7 @@ describe('UsersService', () => {
       //@ts-expect-error
       const result = await userService.createUser();
       expect(result).toEqual(
-        ApiResponse.error(
-          new IsEmptyException('registration data'),
-          'registration data must be provided'
-        )
+        ApiResponse.fromException(new IsEmptyException('registration data'))
       );
     });
 
@@ -218,7 +210,7 @@ describe('UsersService', () => {
 
       expect(userService.getUserByEmail).toHaveBeenCalledWith('johndoe@example.com');
       expect(result).toEqual(
-        ApiResponse.error(
+        ApiResponse.fromException(
           new UnauthorizedException('account already exists for johndoe@example.com')
         )
       );
@@ -228,7 +220,7 @@ describe('UsersService', () => {
       jest
         .spyOn(userService, 'getUserByEmail')
         .mockResolvedValueOnce(
-          ApiResponse.error(new NotFoundException('user johndoe@example.com'))
+          ApiResponse.fromException(new NotFoundException('user johndoe@example.com'))
         );
 
       prismaServiceMock.user.create.mockResolvedValueOnce({
@@ -261,20 +253,20 @@ describe('UsersService', () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-expect-error
       const result = await userService.editUser();
-      expect(result).toEqual(
-        ApiResponse.error(new IsEmptyException('id'), 'id must be provided')
-      );
+      expect(result).toEqual(ApiResponse.fromException(new IsEmptyException('id')));
     });
 
     it('should return an error if user is not found', async () => {
       jest
         .spyOn(userService, 'getUserById')
-        .mockResolvedValueOnce(ApiResponse.error(new NotFoundException('user 1')));
+        .mockResolvedValueOnce(
+          ApiResponse.fromException(new NotFoundException('user 1'))
+        );
 
       const result = await userService.editUser(1, {});
 
       expect(userService.getUserById).toHaveBeenCalledWith(1);
-      expect(result).toEqual(ApiResponse.error(new NotFoundException('user 1')));
+      expect(result).toEqual(ApiResponse.fromException(new NotFoundException('user 1')));
     });
 
     it('should update the user if found', async () => {
