@@ -74,10 +74,9 @@ export class AuthService {
 
       // Check if a user with the provided email already exists
       const existingUser = await this.usersService.getUserByEmail(email);
-
       // If a user with the email exists, return an error response
       if (existingUser.success)
-        return ApiResponse.error(
+        return ApiResponse.fromException(
           new UnauthorizedException(
             `account already exists for ${existingUser.data.email}`
           )
@@ -85,7 +84,6 @@ export class AuthService {
 
       // Hash the user's password before creating the user
       const hashedPassword = await bcrypt.hash(password, 10);
-
       // Create the user with the hashed password
       const user = await this.usersService.createUser({
         email,
@@ -108,16 +106,17 @@ export class AuthService {
    */
   async localSignup(
     req: Request,
-    { email, password, passwordMatch }: Dto.Signup
+    registrationData: Dto.Signup
   ): Promise<ApiResponse<UserWithToken>> {
     try {
       // Check if registration data (email, password, passwordMatch) is empty
-      if (isEmpty({ email, password, passwordMatch }))
-        throw new IsEmptyException('registration data');
+      if (isEmpty(registrationData)) throw new IsEmptyException('registration data');
+
+      const { email, password, passwordMatch } = registrationData;
 
       // Check if password and password confirmation match
       if (password !== passwordMatch)
-        return ApiResponse.error(
+        return ApiResponse.fromException(
           new BadRequestException("password and confirmation password don't match")
         );
 
@@ -125,7 +124,8 @@ export class AuthService {
       const user = await this.createUser({ email, password });
 
       // If user creation is unsuccessful, return an error response
-      if (!user.success) return ApiResponse.error(new BadRequestException(user.message));
+      if (!user.success)
+        return ApiResponse.fromException(new BadRequestException(user.message));
 
       // Log in the user and obtain an access token
       const {
@@ -141,7 +141,7 @@ export class AuthService {
       );
     } catch (err) {
       // Return an error response in case of exceptions
-      return ApiResponse.error(err);
+      return ApiResponse.fromException(err);
     }
   }
 
@@ -186,9 +186,15 @@ export class AuthService {
     }
   }
 
+  /**
+   * Logs out a user from the local session.
+   *
+   * @param {number} id - The ID of the user to log out.
+   * @returns {Promise<ApiResponse<null>>} A promise that resolves to an ApiResponse with success or error information.
+   */
   async localLogout(id: number) {
     try {
-      await this.cacheManager.del(id.toString());
+      await this.sessionService.deleteActiveSessionFromCache(id);
 
       return ApiResponse.success(null, `user ${id} logged out`);
     } catch (err) {
