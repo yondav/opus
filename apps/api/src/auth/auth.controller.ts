@@ -101,9 +101,9 @@ export class AuthController {
     return this.authService.localLogout(Number(id));
   }
 
-  @UseGuards(JWT.Guard)
-  @Get('session')
-  async getProfile(@Req() req) {
-    return req.user;
-  }
+  // @UseGuards(JWT.Guard)
+  // @Get('session')
+  // async getProfile(@Req() req) {
+  //   return req.user;
+  // }
 }
